@@ -12,7 +12,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/piyu/product/get`;
 
 const PRODUCT_TYPES = [
-  'Mobile',
+  'Accessories',
   'Computer',
   'TV',
   'Refrigerator',
@@ -25,7 +25,6 @@ const ProductListReadOnly = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
@@ -36,8 +35,7 @@ const ProductListReadOnly = () => {
     try {
       const params = {
         page: currentPage,
-        size: pageSize,
-        sort: sortOrder
+        size: pageSize
       };
 
       if (searchTerm) {
@@ -65,7 +63,7 @@ const ProductListReadOnly = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, searchTerm, filterType, sortOrder]);
+  }, [currentPage, searchTerm, filterType]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -74,11 +72,6 @@ const ProductListReadOnly = () => {
 
   const handleFilterChange = (value) => {
     setFilterType(value);
-    setCurrentPage(0);
-  };
-
-  const handleSortChange = (value) => {
-    setSortOrder(value);
     setCurrentPage(0);
   };
 
@@ -117,12 +110,6 @@ const ProductListReadOnly = () => {
               </Select>
             </div>
 
-            <div className="sort-select">
-              <Select value={sortOrder} onChange={handleSortChange}>
-                <SelectItem value="asc">Price: Low to High</SelectItem>
-                <SelectItem value="desc">Price: High to Low</SelectItem>
-              </Select>
-            </div>
           </div>
 
           {loading ? (
@@ -145,10 +132,11 @@ const ProductListReadOnly = () => {
                     <tr>
                       <th>Sr No</th>
                       <th>Company</th>
+                      <th>Size</th>
                       <th>Model</th>
                       <th>Type</th>
                       <th>Quantity</th>
-                      <th>Price</th>
+                      <th>Serial No</th>
                       <th>Net Landing Price</th>
                     </tr>
                   </thead>
@@ -157,11 +145,12 @@ const ProductListReadOnly = () => {
                       <tr key={product.id} data-testid={`product-row-${product.id}`}>
                         <td>{currentPage * pageSize + index + 1}</td>
                         <td>{product.company}</td>
+                        <td>{product.size}</td>
                         <td>{product.model}</td>
                         <td>{product.type}</td>
                         <td>{product.quantity}</td>
-                        <td>{product.price?.toFixed(2)}</td>
-                        <td>{product.netLandingPrice?.toFixed(2)}</td>
+                        <td>{product.serialNumber}</td>
+                        <td>{product.netLandingPrice}</td>
                       </tr>
                     ))}
                   </tbody>

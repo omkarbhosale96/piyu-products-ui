@@ -12,12 +12,13 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/piyu/product/create`;
 
 const PRODUCT_TYPES = [
-  'Mobile',
+  'Accessories',
   'Computer',
   'TV',
   'Refrigerator',
   'Washing machine',
-  'Home theatre'
+  'Home theatre',
+  'Air Cooler'
 ];
 
 const CreateProduct = () => {
@@ -25,10 +26,10 @@ const CreateProduct = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     company: '',
+    size: '',
     model: '',
     type: '',
     quantity: '',
-    price: '',
     netLandingPrice: ''
   });
 
@@ -42,8 +43,8 @@ const CreateProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.company || !formData.model || !formData.type || !formData.quantity || !formData.price || !formData.netLandingPrice) {
-      toast.error('Please fill in all fields');
+    if (!formData.company || !formData.model || !formData.type || !formData.quantity || !formData.netLandingPrice) {
+      toast.error('Please fill in required fields');
       return;
     }
 
@@ -51,11 +52,12 @@ const CreateProduct = () => {
     try {
       const payload = {
         company: formData.company,
+        size: formData.size,
         model: formData.model,
         type: formData.type,
         quantity: parseInt(formData.quantity),
-        price: parseFloat(formData.price),
-        netLandingPrice: parseFloat(formData.netLandingPrice)
+        serialNumber: formData.serialNumber,
+        netLandingPrice: parseInt(formData.netLandingPrice)
       };
 
       await axios.post(API_BASE_URL, payload);
@@ -102,6 +104,20 @@ const CreateProduct = () => {
                   onChange={(e) => handleChange('company', e.target.value)}
                   placeholder="Enter company name"
                   required
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-label" htmlFor="size">
+                  Size
+                </label>
+                <Input
+                  data-testid="size-input"
+                  id="size"
+                  type="text"
+                  value={formData.size}
+                  onChange={(e) => handleChange('size', e.target.value)}
+                  placeholder="Enter size"
                 />
               </div>
 
@@ -155,19 +171,16 @@ const CreateProduct = () => {
               </div>
 
               <div className="form-field">
-                <label className="form-label" htmlFor="price">
-                  Price(₹) *
+                <label className="form-label" htmlFor="serialNumber">
+                  Serial Number
                 </label>
                 <Input
-                  data-testid="price-input"
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => handleChange('price', e.target.value)}
-                  placeholder="Enter price"
-                  required
+                  data-testid="serial-number-input"
+                  id="serialNumber"
+                  type="text"
+                  value={formData.serialNumber}
+                  onChange={(e) => handleChange('serialNumber', e.target.value)}
+                  placeholder="Enter serial number"
                 />
               </div>
 
@@ -179,7 +192,6 @@ const CreateProduct = () => {
                   data-testid="net-landing-price-input"
                   id="netLandingPrice"
                   type="number"
-                  step="0.01"
                   min="0"
                   value={formData.netLandingPrice}
                   onChange={(e) => handleChange('netLandingPrice', e.target.value)}

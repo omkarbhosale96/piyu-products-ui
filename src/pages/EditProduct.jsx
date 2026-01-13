@@ -11,12 +11,13 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/piyu/product/update`;
 
 const PRODUCT_TYPES = [
-  'Mobile',
+  'Accessories',
   'Computer',
   'TV',
   'Refrigerator',
   'Washing machine',
-  'Home theatre'
+  'Home theatre',
+  'Air Cooler'
 ];
 
 const EditProduct = () => {
@@ -27,10 +28,10 @@ const EditProduct = () => {
   const [formData, setFormData] = useState({
     id: '',
     company: '',
+    size: '',
     model: '',
     type: '',
     quantity: '',
-    price: '',
     netLandingPrice: ''
   });
 
@@ -40,10 +41,11 @@ const EditProduct = () => {
       setFormData({
         id: product.id,
         company: product.company || '',
+        size: product.size || '',
         model: product.model || '',
         type: product.type || '',
         quantity: product.quantity?.toString() || '',
-        price: product.price?.toString() || '',
+        serialNumber: product.serialNumber?.toString() || '',
         netLandingPrice: product.netLandingPrice?.toString() || ''
       });
     } else {
@@ -62,8 +64,8 @@ const EditProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.company || !formData.model || !formData.type || !formData.quantity || !formData.price || !formData.netLandingPrice) {
-      toast.error('Please fill in all fields');
+    if (!formData.company || !formData.model || !formData.type || !formData.quantity || !formData.netLandingPrice) {
+      toast.error('Please fill in required fields');
       return;
     }
 
@@ -72,11 +74,12 @@ const EditProduct = () => {
       const payload = {
         id: formData.id,
         company: formData.company,
+        size: formData.size,
         model: formData.model,
         type: formData.type,
         quantity: parseInt(formData.quantity),
-        price: parseFloat(formData.price),
-        netLandingPrice: parseFloat(formData.netLandingPrice)
+        serialNumber: formData.serialNumber,
+        netLandingPrice: parseInt(formData.netLandingPrice)
       };
 
       await axios.put(API_BASE_URL, payload);
@@ -125,6 +128,20 @@ const EditProduct = () => {
                   onChange={(e) => handleChange('company', e.target.value)}
                   placeholder="Enter company name"
                   required
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-label" htmlFor="size">
+                  Size 
+                </label>
+                <Input
+                  data-testid="size-input"
+                  id="size"
+                  type="text"
+                  value={formData.size}
+                  onChange={(e) => handleChange('size', e.target.value)}
+                  placeholder="Enter size"
                 />
               </div>
 
@@ -178,19 +195,16 @@ const EditProduct = () => {
               </div>
 
               <div className="form-field">
-                <label className="form-label" htmlFor="price">
-                  Price(₹) *
+                <label className="form-label" htmlFor="serialNumber">
+                  Serial Number
                 </label>
                 <Input
-                  data-testid="price-input"
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => handleChange('price', e.target.value)}
-                  placeholder="Enter price"
-                  required
+                  data-testid="serial-number-input"
+                  id="serialNumber"
+                  type="text"
+                  value={formData.serialNumber}
+                  onChange={(e) => handleChange('serialNumber', e.target.value)}
+                  placeholder="Enter serial number"
                 />
               </div>
 
@@ -202,7 +216,6 @@ const EditProduct = () => {
                   data-testid="net-landing-price-input"
                   id="netLandingPrice"
                   type="number"
-                  step="0.01"
                   min="0"
                   value={formData.netLandingPrice}
                   onChange={(e) => handleChange('netLandingPrice', e.target.value)}

@@ -13,12 +13,13 @@ const API_BASE_URL = `${BACKEND_URL}/api/piyu/product/get`;
 const API_BASE_URL_DELETE = `${BACKEND_URL}/api/piyu/product/delete`;
 
 const PRODUCT_TYPES = [
-  'Mobile',
+  'Accessories',
   'Computer',
   'TV',
   'Refrigerator',
   'Washing machine',
-  'Home theatre'
+  'Home theatre',
+  'Air Cooler'
 ];
 
 const ProductList = () => {
@@ -27,7 +28,6 @@ const ProductList = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
@@ -40,8 +40,7 @@ const ProductList = () => {
     try {
       const params = {
         page: currentPage,
-        size: pageSize,
-        sort: sortOrder
+        size: pageSize
       };
 
       if (searchTerm) {
@@ -69,7 +68,7 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, searchTerm, filterType, sortOrder]);
+  }, [currentPage, searchTerm, filterType]);
 
   const handleDelete = async () => {
     if (!productToDelete) return;
@@ -102,11 +101,6 @@ const ProductList = () => {
 
   const handleFilterChange = (value) => {
     setFilterType(value);
-    setCurrentPage(0);
-  };
-
-  const handleSortChange = (value) => {
-    setSortOrder(value);
     setCurrentPage(0);
   };
 
@@ -149,18 +143,6 @@ const ProductList = () => {
               </Select>
             </div>
 
-            <div className="sort-select">
-              <Select value={sortOrder} onValueChange={handleSortChange}>
-                <SelectTrigger data-testid="sort-select">
-                  <SelectValue placeholder="Sort by Price" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="asc">Price: Low to High</SelectItem>
-                  <SelectItem value="desc">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="create-btn-wrapper">
               <Button
                 data-testid="create-product-btn"
@@ -194,10 +176,11 @@ const ProductList = () => {
                     <tr>
                       <th>Sr No</th>
                       <th>Company</th>
+                      <th>Size</th>
                       <th>Model</th>
                       <th>Type</th>
                       <th>Quantity</th>
-                      <th>Price</th>
+                      <th>Serial No</th>
                       <th>Net Landing Price</th>
                       <th>Actions</th>
                     </tr>
@@ -207,11 +190,12 @@ const ProductList = () => {
                       <tr key={product.id} data-testid={`product-row-${product.id}`}>
                         <td>{currentPage * pageSize + index + 1}</td>
                         <td>{product.company}</td>
+                        <td>{product.size}</td>
                         <td>{product.model}</td>
                         <td>{product.type}</td>
                         <td>{product.quantity}</td>
-                        <td>${product.price?.toFixed(2)}</td>
-                        <td>${product.netLandingPrice?.toFixed(2)}</td>
+                        <td>{product.serialNumber}</td>
+                        <td>{product.netLandingPrice}</td>
                         <td>
                           <div className="action-buttons">
                             <Button

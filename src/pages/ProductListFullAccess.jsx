@@ -12,14 +12,17 @@ import Modal from '@/components/Modal';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/piyu/product/get`;
 const API_DELETE_URL = `${BACKEND_URL}/api/piyu/product/delete`;
+const API_DOWNLOAD_EXCEL_URL = `${BACKEND_URL}/api/piyu/product/download/excel`;
+
 
 const PRODUCT_TYPES = [
-  'Mobile',
+  'Accessories',
   'Computer',
   'TV',
   'Refrigerator',
   'Washing machine',
-  'Home theatre'
+  'Home theatre',
+  'Air Cooler'
 ];
 
 const ProductListFullAccess = () => {
@@ -28,7 +31,6 @@ const ProductListFullAccess = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
@@ -36,14 +38,14 @@ const ProductListFullAccess = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = {
         page: currentPage,
-        size: pageSize,
-        sort: sortOrder
+        size: pageSize
       };
 
       if (searchTerm) {
@@ -71,7 +73,7 @@ const ProductListFullAccess = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, searchTerm, filterType, sortOrder]);
+  }, [currentPage, searchTerm, filterType]);
 
   const handleDelete = async () => {
     if (!productToDelete) return;
@@ -109,10 +111,44 @@ const ProductListFullAccess = () => {
     setCurrentPage(0);
   };
 
-  const handleSortChange = (value) => {
-    setSortOrder(value);
-    setCurrentPage(0);
-  };
+  const handleDownloadExcel = async () => {
+  setDownloading(true);
+  try {
+    const response = await axios.get(API_DOWNLOAD_EXCEL_URL, {
+      responseType: 'blob', // 🔑 REQUIRED
+    });
+
+    // Extract filename from Content-Disposition
+    const contentDisposition = response.headers['content-disposition'];
+    const today = new Date();
+    let filename = `products_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.xlsx`;
+
+
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?(.+)"?/);
+      if (match?.[1]) {
+        filename = match[1];
+      }
+    }
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    toast.success('Excel downloaded successfully');
+  } catch (error) {
+    console.error('Error downloading excel:', error);
+    toast.error('Failed to download Excel');
+  } finally {
+    setDownloading(false);
+  }
+};
+
 
   return (
     <div className="app-container">
@@ -149,13 +185,6 @@ const ProductListFullAccess = () => {
               </Select>
             </div>
 
-            <div className="sort-select">
-              <Select value={sortOrder} onChange={handleSortChange}>
-                <SelectItem value="asc">Price: Low to High</SelectItem>
-                <SelectItem value="desc">Price: High to Low</SelectItem>
-              </Select>
-            </div>
-
             <div className="create-btn-wrapper">
               <Button
                 data-testid="create-product-btn"
@@ -183,16 +212,29 @@ const ProductListFullAccess = () => {
             </div>
           ) : (
             <>
+            <div className="flex justify-end mb-4">
+              <Button
+                onClick={handleDownloadExcel}
+                disabled={downloading}
+                variant="outline"
+                className="flex items-center gap-2"
+                data-testid="download-excel-btn"
+              >
+                {downloading ? 'Downloading...' : 'Download Excel'}
+              </Button>
+            </div>
+            <br />
               <div className="table-container">
                 <table className="custom-table" data-testid="products-table">
                   <thead>
                     <tr>
                       <th>Sr No</th>
                       <th>Company</th>
+                      <th>Size</th>
                       <th>Model</th>
                       <th>Type</th>
                       <th>Quantity</th>
-                      <th>Price</th>
+                      <th>Serial No</th>
                       <th>Net Landing Price</th>
                       <th>Actions</th>
                     </tr>
@@ -202,11 +244,12 @@ const ProductListFullAccess = () => {
                           <tr key={product.id} data-testid={`product-row-${product.id}`}>
                             <td>{currentPage * pageSize + index + 1}</td>
                             <td>{product.company}</td>
+                            <td>{product.size}</td>
                             <td>{product.model}</td>
                             <td>{product.type}</td>
                             <td>{product.quantity}</td>
-                            <td>{product.price?.toFixed(2)}</td>
-                            <td>{product.netLandingPrice?.toFixed(2)}</td>
+                            <td>{product.serialNumber}</td>
+                            <td>{product.netLandingPrice}</td>
                             <td>
                               <div className="action-buttons">
                                 <Button
