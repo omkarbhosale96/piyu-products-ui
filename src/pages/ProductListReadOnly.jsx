@@ -10,6 +10,8 @@ import Header from '@/components/Header';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/piyu/product/get`;
+const API_DOWNLOAD_EXCEL_URL = `${BACKEND_URL}/api/piyu/product/download/excel`;
+
 
 const PRODUCT_TYPES = [
   'Accessories',
@@ -17,7 +19,8 @@ const PRODUCT_TYPES = [
   'TV',
   'Refrigerator',
   'Washing machine',
-  'Home theatre'
+  'Home theatre',
+  'Air Cooler'
 ];
 
 const ProductListReadOnly = () => {
@@ -29,6 +32,7 @@ const ProductListReadOnly = () => {
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [downloading, setDownloading] = useState(false);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -73,6 +77,44 @@ const ProductListReadOnly = () => {
   const handleFilterChange = (value) => {
     setFilterType(value);
     setCurrentPage(0);
+  };
+
+  const handleDownloadExcel = async () => {
+    setDownloading(true);
+    try {
+      const response = await axios.get(API_DOWNLOAD_EXCEL_URL, {
+        responseType: 'blob', // 🔑 REQUIRED
+      });
+
+      // Extract filename from Content-Disposition
+      const contentDisposition = response.headers['content-disposition'];
+      const today = new Date();
+      let filename = `products_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.xlsx`;
+
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?(.+)"?/);
+        if (match?.[1]) {
+          filename = match[1];
+        }
+      }
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success('Excel downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading excel:', error);
+      toast.error('Failed to download Excel');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -126,6 +168,18 @@ const ProductListReadOnly = () => {
             </div>
           ) : (
             <>
+              <div className="flex justify-end mb-4">
+                <Button
+                  onClick={handleDownloadExcel}
+                  disabled={downloading}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  data-testid="download-excel-btn"
+                >
+                  {downloading ? 'Downloading...' : 'Download Excel'}
+                </Button>
+              </div>
+              <br />
               <div className="table-container">
                 <table className="custom-table" data-testid="products-table">
                   <thead>
